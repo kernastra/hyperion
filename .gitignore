@@ -39,3 +39,58 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Python virtual environment
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Downloaded files and output
+downloads/*
+!downloads/.gitkeep
+*.mp4
+*.mp3
+*.webm
+*.mkv
+*.avi
+*.m4a
+*.opus
+*.flac
+*.wav
+
+# Application data
+history.json
+download-history.json
+
+# IDE files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Temporary folders
+tmp/
+temp/
+
+# Turborepo
+.turbo
+
+# Sentry Config File
+.sentryclirc

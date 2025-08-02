@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperion History - Design Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'page-bg': '#f2f5fa',
+                        'nav-bg': '#0f172a',
+                        'card-bg': '#ffffff',
+                        'text-dark': '#111827',
+                        'text-muted': '#6b7280',
+                        'accent-blue': '#2d8cff',
+                        'accent-green': '#10b981',
+                        'badge-red': '#ef4444',
+                        'accent-purple': '#8b5cf6',
+                        'accent-orange': '#f59e0b',
+                    }
+                }
+            }
+        }
+        // Dark mode configuration
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-page-bg dark:bg-gray-900 font-inter transition-colors">
+    <!-- Mobile Navigation Toggle (hidden on desktop) -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-toggle" class="bg-nav-bg text-white p-2 rounded-lg">
+            ☰
+        </button>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <div class="min-h-screen lg:p-2">
+        <div class="lg:grid lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] lg:gap-3 xl:gap-4 lg:max-w-none xl:max-w-[1400px] xl:mx-auto h-full lg:min-h-[calc(100vh-1rem)]">
+            
+            <!-- Left Navigation Rail -->
+            <aside id="nav-rail" class="fixed lg:relative top-0 left-0 w-80 lg:w-full h-full lg:h-auto bg-nav-bg text-white lg:rounded-xl p-4 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+                <!-- Close button for mobile -->
+                <button id="close-nav" class="lg:hidden absolute top-3 right-3 text-white text-xl">✕</button>
+                
+                <!-- User Profile -->
+                <div class="mb-28 pt-6 lg:pt-0">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                H
+                            </div>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-badge-red text-[11px] font-bold flex items-center justify-center rounded-full text-white">
+                                3
+                            </span>
+                        </div>
+                        <div class="text-right flex-1">
+                            <div class="font-bold text-lg text-white">Hyperion</div>
+                            <div class="text-sm text-gray-400">Video Downloader</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="space-y-2 text-base">
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Dashboard
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Downloads
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Queue
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-white font-semibold relative before:absolute before:-left-4 before:inset-y-0 before:w-1 before:bg-accent-blue before:rounded-r">
+                        <div class="w-5 h-5 bg-accent-blue rounded"></div>
+                        History
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Settings
+                    </a>
+                </nav>
+
+                <!-- Dark Mode Toggle -->
+                <div class="mt-auto pt-4 border-t border-gray-600">
+                    <button id="theme-toggle" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors w-full">
+                        <div class="w-5 h-5 bg-gray-400 rounded flex items-center justify-center">
+                            <span id="theme-icon" class="text-xs">🌙</span>
+                        </div>
+                        <span id="theme-text">Dark Mode</span>
+                    </button>
+                </div>
+                
+                <!-- Version Number at bottom -->
+                <div class="absolute bottom-4 left-4 right-4 text-center">
+                    <div class="text-xs text-gray-500">Hyperion v1.0.0</div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="bg-card-bg dark:bg-gray-800 lg:rounded-xl p-3 sm:p-4 lg:p-6 lg:shadow-[0_4px_16px_rgba(17,24,39,0.08)] dark:lg:shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-screen lg:min-h-0 transition-colors">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 lg:mb-8 pt-16 lg:pt-0">
+                    <div class="mb-4 sm:mb-0">
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-text-dark dark:text-white">Download History</h1>
+                        <p class="text-text-muted dark:text-gray-300 text-sm lg:text-base">View and manage your download history</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input 
+                            type="search" 
+                            placeholder="Search downloads..." 
+                            class="px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none"
+                        >
+                        <button class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-text-dark dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm">
+                            🗑️ Clear History
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-200 dark:border-gray-600">
+                    <button class="px-4 py-2 text-sm font-medium text-accent-blue border-b-2 border-accent-blue">All Downloads</button>
+                    <button class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-dark dark:hover:text-white">Videos</button>
+                    <button class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-dark dark:hover:text-white">Audio</button>
+                    <button class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-dark dark:hover:text-white">Playlists</button>
+                    <button class="px-4 py-2 text-sm font-medium text-text-muted hover:text-text-dark dark:hover:text-white">Failed</button>
+                </div>
+
+                <!-- History Timeline -->
+                <div class="space-y-6">
+                    <!-- Today Section -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <h3 class="text-lg font-semibold text-text-dark dark:text-white">Today</h3>
+                            <span class="text-sm text-text-muted dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">24 downloads</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <!-- Download Item 1 -->
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-lg">✓</div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-text-dark dark:text-white truncate">Amazing Nature Documentary - Wildlife 4K</div>
+                                        <div class="text-sm text-text-muted dark:text-gray-300 mt-1">YouTube • 1080p • 1.2 GB • Downloaded 2:34 PM</div>
+                                        <div class="text-xs text-text-muted dark:text-gray-300 mt-1">https://youtube.com/watch?v=abc123...</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button class="text-accent-blue hover:text-blue-600 text-sm">📁 Open</button>
+                                        <button class="text-text-muted hover:text-text-dark dark:hover:text-white text-sm">🔄 Re-download</button>
+                                        <button class="text-text-muted hover:text-red-500 text-sm">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Download Item 2 -->
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-lg">✓</div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-text-dark dark:text-white truncate">Coding Music Playlist - Focus Beats</div>
+                                        <div class="text-sm text-text-muted dark:text-gray-300 mt-1">YouTube • Audio Only • 156 MB • Downloaded 1:15 PM</div>
+                                        <div class="text-xs text-text-muted dark:text-gray-300 mt-1">https://youtube.com/playlist?list=xyz789...</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button class="text-accent-blue hover:text-blue-600 text-sm">📁 Open</button>
+                                        <button class="text-text-muted hover:text-text-dark dark:hover:text-white text-sm">🔄 Re-download</button>
+                                        <button class="text-text-muted hover:text-red-500 text-sm">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Failed Download -->
+                            <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-700 hover:shadow-md transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center text-white text-lg">✕</div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-text-dark dark:text-white truncate">Private Video - Access Denied</div>
+                                        <div class="text-sm text-red-600 dark:text-red-400 mt-1">Failed at 11:30 AM • Error: Video unavailable</div>
+                                        <div class="text-xs text-text-muted dark:text-gray-300 mt-1">https://youtube.com/watch?v=private123...</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button class="text-accent-blue hover:text-blue-600 text-sm">🔄 Retry</button>
+                                        <button class="text-text-muted hover:text-red-500 text-sm">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Yesterday Section -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <h3 class="text-lg font-semibold text-text-dark dark:text-white">Yesterday</h3>
+                            <span class="text-sm text-text-muted dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">18 downloads</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <!-- Download Item -->
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-lg">✓</div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-text-dark dark:text-white truncate">JavaScript Tutorial Series - Complete Course</div>
+                                        <div class="text-sm text-text-muted dark:text-gray-300 mt-1">YouTube • 720p • 2.1 GB • Downloaded 6:45 PM</div>
+                                        <div class="text-xs text-text-muted dark:text-gray-300 mt-1">https://youtube.com/watch?v=js456...</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <button class="text-accent-blue hover:text-blue-600 text-sm">📁 Open</button>
+                                        <button class="text-text-muted hover:text-text-dark dark:hover:text-white text-sm">🔄 Re-download</button>
+                                        <button class="text-text-muted hover:text-red-500 text-sm">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Collapsed indicator -->
+                            <div class="text-center py-2">
+                                <button class="text-accent-blue hover:text-blue-600 text-sm font-medium">
+                                    Show 17 more downloads from yesterday...
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- This Week Section -->
+                    <div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <h3 class="text-lg font-semibold text-text-dark dark:text-white">This Week</h3>
+                            <span class="text-sm text-text-muted dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">127 downloads</span>
+                        </div>
+                        
+                        <div class="text-center py-8 text-text-muted dark:text-gray-300">
+                            <div class="text-sm">Click to expand weekly downloads</div>
+                            <button class="mt-2 text-accent-blue hover:text-blue-600 text-sm font-medium">
+                                Show 127 downloads...
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Load More -->
+                <div class="text-center mt-8">
+                    <button class="px-6 py-3 bg-accent-blue text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                        Load More History
+                    </button>
+                </div>
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside class="hidden lg:block bg-card-bg dark:bg-gray-800 rounded-xl p-4 xl:p-5 transition-colors space-y-6">
+                <!-- History Stats -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Statistics</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-muted dark:text-gray-300">Total Downloads</span>
+                            <span class="text-sm font-semibold text-text-dark dark:text-white">2,847</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-muted dark:text-gray-300">Success Rate</span>
+                            <span class="text-sm font-semibold text-accent-green">97.2%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-muted dark:text-gray-300">Total Size</span>
+                            <span class="text-sm font-semibold text-text-dark dark:text-white">1.2 TB</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-muted dark:text-gray-300">This Month</span>
+                            <span class="text-sm font-semibold text-text-dark dark:text-white">156 files</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Options -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Export</h3>
+                    <div class="space-y-2">
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📄 Export as CSV
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📋 Copy URLs List
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📊 Generate Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Filters -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Quick Filters</h3>
+                    <div class="space-y-2">
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📺 YouTube Downloads
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            🎵 Audio Only
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📋 Playlists
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            ❌ Failed Downloads
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Storage Info -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Storage</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-text-muted dark:text-gray-300">Used</span>
+                            <span class="font-medium text-text-dark dark:text-white">1.2 TB</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                            <div class="bg-accent-blue h-2 rounded-full" style="width: 82%"></div>
+                        </div>
+                        <div class="text-xs text-text-muted dark:text-gray-300">82% of available space</div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- JavaScript for mobile navigation and dark mode -->
+    <script>
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const navRail = document.getElementById('nav-rail');
+        const closeNav = document.getElementById('close-nav');
+        const overlay = document.getElementById('mobile-overlay');
+
+        function openNav() {
+            navRail.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeNavigation() {
+            navRail.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        mobileToggle.addEventListener('click', openNav);
+        closeNav.addEventListener('click', closeNavigation);
+        overlay.addEventListener('click', closeNavigation);
+
+        // Close nav when clicking nav links on mobile
+        const navLinks = navRail.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) {
+                    closeNavigation();
+                }
+            });
+        });
+
+        // Dark mode toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        function updateThemeUI() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            }
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            updateThemeUI();
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // Initialize theme UI
+        updateThemeUI();
+    </script>
+</html>

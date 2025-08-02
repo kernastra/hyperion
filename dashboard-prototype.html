@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperion Dashboard - Design Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'page-bg': '#f2f5fa',
+                        'nav-bg': '#0f172a',
+                        'card-bg': '#ffffff',
+                        'text-dark': '#111827',
+                        'text-muted': '#6b7280',
+                        'accent-blue': '#2d8cff',
+                        'accent-green': '#10b981',
+                        'badge-red': '#ef4444',
+                        'accent-purple': '#8b5cf6',
+                        'accent-orange': '#f59e0b',
+                    }
+                }
+            }
+        }
+        // Dark mode configuration
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-page-bg dark:bg-gray-900 font-inter transition-colors">
+    <!-- Mobile Navigation Toggle (hidden on desktop) -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-toggle" class="bg-nav-bg text-white p-2 rounded-lg">
+            ☰
+        </button>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <div class="min-h-screen lg:p-2">
+        <div class="lg:grid lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] lg:gap-3 xl:gap-4 lg:max-w-none xl:max-w-[1400px] xl:mx-auto h-full lg:min-h-[calc(100vh-1rem)]">
+            
+            <!-- Left Navigation Rail -->
+            <aside id="nav-rail" class="fixed lg:relative top-0 left-0 w-80 lg:w-full h-full lg:h-auto bg-nav-bg text-white lg:rounded-xl p-4 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+                <!-- Close button for mobile -->
+                <button id="close-nav" class="lg:hidden absolute top-3 right-3 text-white text-xl">✕</button>
+                
+                <!-- User Profile -->
+                <div class="mb-28 pt-6 lg:pt-0">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                H
+                            </div>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-badge-red text-[11px] font-bold flex items-center justify-center rounded-full text-white">
+                                3
+                            </span>
+                        </div>
+                        <div class="text-right flex-1">
+                            <div class="font-bold text-lg text-white">Hyperion</div>
+                            <div class="text-sm text-gray-400">Video Downloader</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="space-y-2 text-base">
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-white font-semibold relative before:absolute before:-left-4 before:inset-y-0 before:w-1 before:bg-accent-blue before:rounded-r">
+                        <div class="w-5 h-5 bg-accent-blue rounded"></div>
+                        Dashboard
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Downloads
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Queue
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        History
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Settings
+                    </a>
+                </nav>
+
+                <!-- Dark Mode Toggle -->
+                <div class="mt-auto pt-4 border-t border-gray-600">
+                    <button id="theme-toggle" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors w-full">
+                        <div class="w-5 h-5 bg-gray-400 rounded flex items-center justify-center">
+                            <span id="theme-icon" class="text-xs">🌙</span>
+                        </div>
+                        <span id="theme-text">Dark Mode</span>
+                    </button>
+                </div>
+                
+                <!-- Version Number at bottom -->
+                <div class="absolute bottom-4 left-4 right-4 text-center">
+                    <div class="text-xs text-gray-500">Hyperion v1.0.0</div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="bg-card-bg dark:bg-gray-800 lg:rounded-xl p-3 sm:p-4 lg:p-6 lg:shadow-[0_4px_16px_rgba(17,24,39,0.08)] dark:lg:shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-screen lg:min-h-0 transition-colors">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 lg:mb-8 pt-16 lg:pt-0">
+                    <div class="mb-4 sm:mb-0">
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-text-dark dark:text-white">Dashboard</h1>
+                        <p class="text-text-muted dark:text-gray-300 text-sm lg:text-base">Welcome back! Here's what's happening with your downloads.</p>
+                    </div>
+                    <button class="px-4 py-2 bg-accent-blue text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm lg:text-base whitespace-nowrap">
+                        + New Download
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+                    <!-- Total Downloads -->
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 lg:p-6 rounded-xl transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 lg:w-10 lg:h-10 bg-accent-blue rounded-lg flex items-center justify-center text-white text-sm lg:text-base">
+                                📁
+                            </div>
+                            <span class="text-xs font-medium text-accent-blue bg-blue-100 dark:bg-blue-800/50 px-2 py-1 rounded-full">+12%</span>
+                        </div>
+                        <div class="text-2xl lg:text-3xl font-bold text-text-dark dark:text-white mb-1">2,847</div>
+                        <div class="text-sm text-text-muted dark:text-gray-300">Total Downloads</div>
+                    </div>
+
+                    <!-- Storage Used -->
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-4 lg:p-6 rounded-xl transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 lg:w-10 lg:h-10 bg-accent-green rounded-lg flex items-center justify-center text-white text-sm lg:text-base">
+                                💾
+                            </div>
+                            <span class="text-xs font-medium text-accent-green bg-green-100 dark:bg-green-800/50 px-2 py-1 rounded-full">82%</span>
+                        </div>
+                        <div class="text-2xl lg:text-3xl font-bold text-text-dark dark:text-white mb-1">1.2 TB</div>
+                        <div class="text-sm text-text-muted dark:text-gray-300">Storage Used</div>
+                    </div>
+
+                    <!-- Active Downloads -->
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-4 lg:p-6 rounded-xl transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 lg:w-10 lg:h-10 bg-accent-purple rounded-lg flex items-center justify-center text-white text-sm lg:text-base">
+                                ⚡
+                            </div>
+                            <span class="text-xs font-medium text-accent-purple bg-purple-100 dark:bg-purple-800/50 px-2 py-1 rounded-full">Live</span>
+                        </div>
+                        <div class="text-2xl lg:text-3xl font-bold text-text-dark dark:text-white mb-1">7</div>
+                        <div class="text-sm text-text-muted dark:text-gray-300">Active Downloads</div>
+                    </div>
+
+                    <!-- This Month -->
+                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-4 lg:p-6 rounded-xl transition-colors">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 lg:w-10 lg:h-10 bg-accent-orange rounded-lg flex items-center justify-center text-white text-sm lg:text-base">
+                                📈
+                            </div>
+                            <span class="text-xs font-medium text-accent-orange bg-orange-100 dark:bg-orange-800/50 px-2 py-1 rounded-full">+28%</span>
+                        </div>
+                        <div class="text-2xl lg:text-3xl font-bold text-text-dark dark:text-white mb-1">156</div>
+                        <div class="text-sm text-text-muted dark:text-gray-300">This Month</div>
+                    </div>
+                </div>
+
+                <!-- Chart Section -->
+                <div class="grid lg:grid-cols-2 gap-6 mb-6 lg:mb-8">
+                    <!-- Download Activity Chart -->
+                    <div class="bg-white dark:bg-gray-700 rounded-xl p-4 lg:p-6 transition-colors">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-semibold text-text-dark dark:text-white text-lg">Download Activity</h3>
+                            <select class="text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg px-3 py-1 transition-colors">
+                                <option>Last 7 days</option>
+                                <option>Last 30 days</option>
+                                <option>Last 3 months</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end gap-2 h-32 lg:h-40 mb-3">
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 h-8 rounded-sm"></div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 h-12 rounded-sm"></div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 h-16 rounded-sm"></div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 h-10 rounded-sm"></div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 h-20 rounded-sm"></div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 h-14 rounded-sm"></div>
+                            <div class="w-full bg-accent-blue h-32 rounded-sm"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-text-muted dark:text-gray-300">
+                            <span>Mon</span>
+                            <span>Tue</span>
+                            <span>Wed</span>
+                            <span>Thu</span>
+                            <span>Fri</span>
+                            <span>Sat</span>
+                            <span>Sun</span>
+                        </div>
+                    </div>
+
+                    <!-- Format Distribution -->
+                    <div class="bg-white dark:bg-gray-700 rounded-xl p-4 lg:p-6 transition-colors">
+                        <h3 class="font-semibold text-text-dark dark:text-white text-lg mb-4">Format Distribution</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-text-dark dark:text-white">Video (MP4)</span>
+                                    <span class="font-medium text-text-dark dark:text-white">68%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                    <div class="bg-accent-blue h-2 rounded-full" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-text-dark dark:text-white">Audio (MP3)</span>
+                                    <span class="font-medium text-text-dark dark:text-white">24%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                    <div class="bg-accent-green h-2 rounded-full" style="width: 24%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-text-dark dark:text-white">Playlists</span>
+                                    <span class="font-medium text-text-dark dark:text-white">8%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                    <div class="bg-accent-purple h-2 rounded-full" style="width: 8%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white dark:bg-gray-700 rounded-xl p-4 lg:p-6 transition-colors">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-text-dark dark:text-white text-lg">Recent Activity</h3>
+                        <a href="#" class="text-accent-blue hover:text-blue-600 text-sm font-medium">View All</a>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-text-dark dark:text-white text-sm truncate">Downloaded "Nature Documentary 4K"</div>
+                                <div class="text-xs text-text-muted dark:text-gray-300">2 minutes ago • 1.2 GB</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">⏳</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-text-dark dark:text-white text-sm truncate">Processing "Coding Tutorial Series"</div>
+                                <div class="text-xs text-text-muted dark:text-gray-300">5 minutes ago • 850 MB</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-600 rounded-lg transition-colors">
+                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-medium text-text-dark dark:text-white text-sm truncate">Downloaded "Podcast Episode #42"</div>
+                                <div class="text-xs text-text-muted dark:text-gray-300">1 hour ago • 156 MB</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside class="hidden lg:block bg-card-bg dark:bg-gray-800 rounded-xl p-4 xl:p-5 transition-colors space-y-6">
+                <!-- Quick Actions -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button class="w-full bg-accent-blue text-white py-3 px-4 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+                            + Add URL
+                        </button>
+                        <button class="w-full bg-gray-100 dark:bg-gray-700 text-text-dark dark:text-white py-3 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            📋 Paste from Clipboard
+                        </button>
+                        <button class="w-full bg-gray-100 dark:bg-gray-700 text-text-dark dark:text-white py-3 px-4 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                            📁 Open Downloads Folder
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">System Status</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-text-muted dark:text-gray-300">CPU Usage</span>
+                            <span class="text-sm font-medium text-text-dark dark:text-white">23%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                            <div class="bg-accent-green h-2 rounded-full" style="width: 23%"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-text-muted dark:text-gray-300">Memory</span>
+                            <span class="text-sm font-medium text-text-dark dark:text-white">54%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                            <div class="bg-accent-orange h-2 rounded-full" style="width: 54%"></div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-text-muted dark:text-gray-300">Network</span>
+                            <span class="text-sm font-medium text-accent-green">Active</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Sources -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Recent Sources</h3>
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <div class="w-6 h-6 bg-red-500 rounded flex items-center justify-center text-white text-xs">▶</div>
+                            <span class="text-sm text-text-dark dark:text-white">YouTube</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <div class="w-6 h-6 bg-purple-500 rounded flex items-center justify-center text-white text-xs">⚡</div>
+                            <span class="text-sm text-text-dark dark:text-white">Vimeo</span>
+                        </div>
+                        <div class="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                            <div class="w-6 h-6 bg-blue-500 rounded flex items-center justify-center text-white text-xs">🎵</div>
+                            <span class="text-sm text-text-dark dark:text-white">SoundCloud</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- JavaScript for mobile navigation and dark mode -->
+    <script>
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const navRail = document.getElementById('nav-rail');
+        const closeNav = document.getElementById('close-nav');
+        const overlay = document.getElementById('mobile-overlay');
+
+        function openNav() {
+            navRail.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeNavigation() {
+            navRail.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        mobileToggle.addEventListener('click', openNav);
+        closeNav.addEventListener('click', closeNavigation);
+        overlay.addEventListener('click', closeNavigation);
+
+        // Close nav when clicking nav links on mobile
+        const navLinks = navRail.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) {
+                    closeNavigation();
+                }
+            });
+        });
+
+        // Dark mode toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        function updateThemeUI() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            }
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            updateThemeUI();
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // Initialize theme UI
+        updateThemeUI();
+    </script>
+</html>

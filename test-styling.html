@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperion - Design Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'page-bg': '#f2f5fa',
+                        'nav-bg': '#0f172a',
+                        'card-bg': '#ffffff',
+                        'text-dark': '#111827',
+                        'text-muted': '#6b7280',
+                        'accent-blue': '#2d8cff',
+                        'accent-green': '#10b981',
+                        'badge-red': '#ef4444',
+                    }
+                }
+            }
+        }
+        // Dark mode configuration
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-page-bg dark:bg-gray-900 font-inter transition-colors">
+    <!-- Mobile Navigation Toggle (hidden on desktop) -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-toggle" class="bg-nav-bg text-white p-2 rounded-lg">
+            ☰
+        </button>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <div class="min-h-screen lg:p-2">
+        <div class="lg:flex lg:gap-3 xl:gap-4 lg:max-w-none xl:max-w-[1400px] xl:mx-auto h-full lg:min-h-[calc(100vh-1rem)]">
+            
+            <!-- Left Navigation Rail - Sticky -->
+            <aside id="nav-rail" class="fixed lg:sticky lg:top-2 left-0 w-80 lg:w-[280px] xl:w-[300px] h-full lg:h-[calc(100vh-1rem)] bg-nav-bg text-white lg:rounded-xl p-4 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:flex-shrink-0 overflow-y-auto"
+                  style="scrollbar-width: none; -ms-overflow-style: none;"
+            >
+                <style>
+                    #nav-rail::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
+                <!-- Close button for mobile -->
+                <button id="close-nav" class="lg:hidden absolute top-3 right-3 text-white text-xl">✕</button>
+                
+                <!-- Logo -->
+                <div class="mb-28 pt-6 lg:pt-0">
+                    <div class="text-center">
+                        <img src="logo.png" alt="Hyperion" class="h-24 w-auto mb-2 mx-auto">
+                        <div class="text-base text-gray-400">Video Downloader</div>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="space-y-2 text-base">
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Dashboard
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-white font-semibold relative before:absolute before:-left-4 before:inset-y-0 before:w-1 before:bg-accent-blue before:rounded-r">
+                        <div class="w-5 h-5 bg-accent-blue rounded"></div>
+                        Downloads
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Queue
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        History
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Settings
+                    </a>
+                </nav>
+
+                <!-- Dark Mode Toggle -->
+                <div class="mt-auto pt-4 border-t border-gray-600">
+                    <button id="theme-toggle" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors w-full">
+                        <div class="w-5 h-5 bg-gray-400 rounded flex items-center justify-center">
+                            <span id="theme-icon" class="text-xs">🌙</span>
+                        </div>
+                        <span id="theme-text">Dark Mode</span>
+                    </button>
+                </div>
+                
+                <!-- Version Number at bottom -->
+                <div class="absolute bottom-4 left-4 right-4 text-center">
+                    <div class="text-xs text-gray-500">Hyperion v1.0.0</div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area - Flexible -->
+            <main class="flex-1 bg-card-bg dark:bg-gray-800 lg:rounded-xl p-3 sm:p-4 lg:p-6 lg:shadow-[0_4px_16px_rgba(17,24,39,0.08)] dark:lg:shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-screen lg:min-h-0 transition-colors lg:ml-3 xl:ml-4">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 lg:mb-6 pt-16 lg:pt-0">
+                    <div class="mb-4 sm:mb-0">
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-text-dark dark:text-white">Downloads</h1>
+                        <p class="text-text-muted dark:text-gray-300 text-sm lg:text-base">Manage your video downloads</p>
+                    </div>
+                    <div class="flex -space-x-2">
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 bg-blue-500 rounded-full border-2 border-white"></div>
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 bg-green-500 rounded-full border-2 border-white"></div>
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 bg-purple-500 rounded-full border-2 border-white"></div>
+                        <div class="w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full border-2 border-white flex items-center justify-center text-xs font-semibold text-gray-600">
+                            +2
+                        </div>
+                    </div>
+                </div>
+
+                <!-- URL Input Section -->
+                <div class="mb-4 lg:mb-6 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700 rounded-lg transition-colors">
+                    <label class="block text-sm lg:text-base font-medium text-text-dark dark:text-white mb-2">Video URL</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input 
+                            type="url" 
+                            placeholder="https://www.youtube.com/watch?v=..." 
+                            class="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none text-sm lg:text-base transition-colors"
+                        >
+                        <button class="px-6 py-3 bg-accent-blue text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm lg:text-base whitespace-nowrap">
+                            Analyze
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mini Progress Chart -->
+                <div class="mb-4 lg:mb-6">
+                    <div class="flex items-end gap-1 h-12 lg:h-16 mb-2 overflow-x-auto">
+                        <!-- More bars for responsive design -->
+                        <div class="w-2 lg:w-3 bg-gray-300 h-3 lg:h-4 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-4 lg:h-6 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-6 lg:h-8 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-4 lg:h-5 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-8 lg:h-10 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-5 lg:h-7 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-9 lg:h-12 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-7 lg:h-9 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-gray-300 h-10 lg:h-14 rounded-sm flex-shrink-0"></div>
+                        <div class="w-2 lg:w-3 bg-accent-blue h-12 lg:h-16 rounded-sm flex-shrink-0"></div>
+                    </div>
+                    <p class="text-xs lg:text-sm text-text-muted">Download activity (last 30 days)</p>
+                </div>
+
+                <!-- Recent Downloads List -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-4 text-base lg:text-lg">Recent Downloads</h3>
+                    
+                    <!-- Today Section -->
+                    <div class="mb-4">
+                        <div class="text-sm lg:text-base font-medium text-text-muted dark:text-gray-300 mb-2">Today</div>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-red-500 rounded-full flex items-center justify-center text-white text-sm lg:text-base flex-shrink-0">
+                                    ▶
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-text-dark dark:text-white text-sm lg:text-base truncate">Amazing Nature Documentary</div>
+                                    <div class="text-xs lg:text-sm text-text-muted dark:text-gray-300">YouTube • 4K Video</div>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-sm lg:text-base font-medium text-text-dark dark:text-white">1.2 GB</div>
+                                    <div class="text-xs lg:text-sm text-text-muted dark:text-gray-300">2:34 PM</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm lg:text-base flex-shrink-0">
+                                    🎵
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-text-dark dark:text-white text-sm lg:text-base truncate">Coding Playlist Mix</div>
+                                    <div class="text-xs lg:text-sm text-text-muted dark:text-gray-300">YouTube • Audio Only</div>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-sm lg:text-base font-medium text-text-dark dark:text-white">156 MB</div>
+                                    <div class="text-xs lg:text-sm text-text-muted dark:text-gray-300">1:15 PM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Yesterday Section -->
+                    <div>
+                        <div class="text-sm lg:text-base font-medium text-text-muted dark:text-gray-300 mb-2">Yesterday</div>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-3 lg:gap-4 p-2 lg:p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                                <div class="w-8 h-8 lg:w-10 lg:h-10 bg-green-500 rounded-full flex items-center justify-center text-white text-sm lg:text-base flex-shrink-0">
+                                    📚
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-medium text-text-dark dark:text-white text-sm lg:text-base truncate">Programming Tutorial Series</div>
+                                    <div class="text-xs lg:text-sm text-text-muted dark:text-gray-300">YouTube • 1080p Video</div>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <div class="text-sm lg:text-base font-medium text-text-dark dark:text-white">850 MB</div>
+                                    <div class="text-xs lg:text-sm text-text-muted dark:text-gray-300">6:45 PM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar - Sticky -->
+            <aside class="hidden lg:block lg:sticky lg:top-2 w-[320px] xl:w-[350px] h-[calc(100vh-1rem)] bg-card-bg dark:bg-gray-800 rounded-xl p-4 xl:p-5 border-l border-gray-200 dark:border-gray-600 transition-colors lg:flex-shrink-0 overflow-y-auto"
+                   style="scrollbar-width: none; -ms-overflow-style: none;"
+            >
+                <style>
+                    aside::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
+                <!-- Download Stats -->
+                <div class="mb-6">
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Download Stats</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-text-muted dark:text-gray-300">Videos</span>
+                                <span class="font-medium dark:text-white">24 files</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1">
+                                <div class="bg-accent-green h-1 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-text-muted dark:text-gray-300">Audio</span>
+                                <span class="font-medium dark:text-white">12 files</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1">
+                                <div class="bg-accent-green h-1 rounded-full" style="width: 45%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-text-muted dark:text-gray-300">Playlists</span>
+                                <span class="font-medium dark:text-white">6 items</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1">
+                                <div class="bg-accent-green h-1 rounded-full" style="width: 30%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips Card -->
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg p-4 transition-colors">
+                    <div class="w-10 h-10 bg-accent-blue rounded-lg flex items-center justify-center text-white mb-3 text-lg">
+                        💡
+                    </div>
+                    <h4 class="font-semibold text-text-dark dark:text-white mb-2">Download Faster</h4>
+                    <p class="text-sm text-text-muted dark:text-gray-300 mb-3">
+                        Use batch downloads and configure concurrent connections to speed up your downloads.
+                    </p>
+                    <button class="w-full bg-accent-blue text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+                        VIEW TIPS
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- JavaScript for mobile navigation -->
+    <script>
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const navRail = document.getElementById('nav-rail');
+        const closeNav = document.getElementById('close-nav');
+        const overlay = document.getElementById('mobile-overlay');
+
+        function openNav() {
+            navRail.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeNavigation() {
+            navRail.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        mobileToggle.addEventListener('click', openNav);
+        closeNav.addEventListener('click', closeNavigation);
+        overlay.addEventListener('click', closeNavigation);
+
+        // Close nav when clicking nav links on mobile
+        const navLinks = navRail.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) {
+                    closeNavigation();
+                }
+            });
+        });
+
+        // Dark mode toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        function updateThemeUI() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            }
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            updateThemeUI();
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // Initialize theme UI
+        updateThemeUI();
+    </script>
+</html>

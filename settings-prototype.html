@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperion Settings - Design Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'page-bg': '#f2f5fa',
+                        'nav-bg': '#0f172a',
+                        'card-bg': '#ffffff',
+                        'text-dark': '#111827',
+                        'text-muted': '#6b7280',
+                        'accent-blue': '#2d8cff',
+                        'accent-green': '#10b981',
+                        'badge-red': '#ef4444',
+                        'accent-purple': '#8b5cf6',
+                        'accent-orange': '#f59e0b',
+                    }
+                }
+            }
+        }
+        // Dark mode configuration
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-page-bg dark:bg-gray-900 font-inter transition-colors">
+    <!-- Mobile Navigation Toggle (hidden on desktop) -->
+    <div class="lg:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-toggle" class="bg-nav-bg text-white p-2 rounded-lg">
+            ☰
+        </button>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
+    <div class="min-h-screen lg:p-2">
+        <div class="lg:flex lg:gap-3 xl:gap-4 lg:max-w-none xl:max-w-[1400px] xl:mx-auto h-full lg:min-h-[calc(100vh-1rem)]">
+            
+            <!-- Left Navigation Rail - Sticky -->
+            <aside id="nav-rail" class="fixed lg:sticky lg:top-2 left-0 w-80 lg:w-[280px] xl:w-[300px] h-full lg:h-[calc(100vh-1rem)] bg-nav-bg text-white lg:rounded-xl p-4 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:flex-shrink-0 overflow-y-auto"
+                  style="scrollbar-width: none; -ms-overflow-style: none;"
+            >
+                <style>
+                    #nav-rail::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
+                <!-- Close button for mobile -->
+                <button id="close-nav" class="lg:hidden absolute top-3 right-3 text-white text-xl">✕</button>
+                
+                <!-- User Profile -->
+                <div class="mb-28 pt-6 lg:pt-0">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                                H
+                            </div>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-badge-red text-[11px] font-bold flex items-center justify-center rounded-full text-white">
+                                3
+                            </span>
+                        </div>
+                        <div class="text-right flex-1">
+                            <div class="font-bold text-lg text-white">Hyperion</div>
+                            <div class="text-sm text-gray-400">Video Downloader</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="space-y-2 text-base">
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Dashboard
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Downloads
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        Queue
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                        <div class="w-5 h-5 bg-gray-400 rounded"></div>
+                        History
+                    </a>
+                    <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-white font-semibold relative before:absolute before:-left-4 before:inset-y-0 before:w-1 before:bg-accent-blue before:rounded-r">
+                        <div class="w-5 h-5 bg-accent-blue rounded"></div>
+                        Settings
+                    </a>
+                </nav>
+
+                <!-- Dark Mode Toggle -->
+                <div class="mt-auto pt-4 border-t border-gray-600">
+                    <button id="theme-toggle" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors w-full">
+                        <div class="w-5 h-5 bg-gray-400 rounded flex items-center justify-center">
+                            <span id="theme-icon" class="text-xs">🌙</span>
+                        </div>
+                        <span id="theme-text">Dark Mode</span>
+                    </button>
+                </div>
+                
+                <!-- Version Number at bottom -->
+                <div class="absolute bottom-4 left-4 right-4 text-center">
+                    <div class="text-xs text-gray-500">Hyperion v1.0.0</div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area - Flexible -->
+            <main class="flex-1 bg-card-bg dark:bg-gray-800 lg:rounded-xl p-3 sm:p-4 lg:p-6 lg:shadow-[0_4px_16px_rgba(17,24,39,0.08)] dark:lg:shadow-[0_4px_16px_rgba(0,0,0,0.3)] min-h-screen lg:min-h-0 transition-colors lg:ml-3 xl:ml-4">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 lg:mb-8 pt-16 lg:pt-0">
+                    <div class="mb-4 sm:mb-0">
+                        <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-text-dark dark:text-white">Settings</h1>
+                        <p class="text-text-muted dark:text-gray-300 text-sm lg:text-base">Configure Hyperion to your preferences</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-text-dark dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-sm">
+                            Reset to Defaults
+                        </button>
+                        <button class="px-4 py-2 bg-accent-blue text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Settings Sections -->
+                <div class="space-y-6 lg:space-y-8">
+                    
+                    <!-- Download Settings -->
+                    <div class="bg-white dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600 transition-colors">
+                        <h3 class="text-lg font-semibold text-text-dark dark:text-white mb-4">Download Settings</h3>
+                        
+                        <div class="grid gap-6 lg:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Download Directory</label>
+                                <div class="flex gap-2">
+                                    <input 
+                                        type="text" 
+                                        value="/home/user/Downloads" 
+                                        class="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none"
+                                    >
+                                    <button class="px-3 py-2 bg-gray-100 dark:bg-gray-600 text-text-dark dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors text-sm">
+                                        Browse
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Max Concurrent Downloads</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option>1</option>
+                                    <option>3</option>
+                                    <option selected>5</option>
+                                    <option>7</option>
+                                    <option>10</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Speed Limit (MB/s)</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option selected>Unlimited</option>
+                                    <option>100</option>
+                                    <option>50</option>
+                                    <option>25</option>
+                                    <option>10</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Retry Failed Downloads</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option>Never</option>
+                                    <option>1 time</option>
+                                    <option selected>3 times</option>
+                                    <option>5 times</option>
+                                    <option>Unlimited</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 space-y-3">
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Auto-start downloads when added to queue</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Continue downloads on app restart</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Pause downloads when system is idle</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Quality & Format Settings -->
+                    <div class="bg-white dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600 transition-colors">
+                        <h3 class="text-lg font-semibold text-text-dark dark:text-white mb-4">Quality & Format Settings</h3>
+                        
+                        <div class="grid gap-6 lg:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Default Video Quality</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option>Best Available</option>
+                                    <option>4K (2160p)</option>
+                                    <option selected>1080p</option>
+                                    <option>720p</option>
+                                    <option>480p</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Default Audio Quality</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option selected>Best Available</option>
+                                    <option>320 kbps</option>
+                                    <option>256 kbps</option>
+                                    <option>192 kbps</option>
+                                    <option>128 kbps</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Video Format</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option selected>MP4</option>
+                                    <option>MKV</option>
+                                    <option>WEBM</option>
+                                    <option>AVI</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Audio Format</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option selected>MP3</option>
+                                    <option>M4A</option>
+                                    <option>OPUS</option>
+                                    <option>FLAC</option>
+                                    <option>WAV</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 space-y-3">
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Download subtitles when available</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Embed subtitles in video file</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Download thumbnails</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Network & Proxy Settings -->
+                    <div class="bg-white dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600 transition-colors">
+                        <h3 class="text-lg font-semibold text-text-dark dark:text-white mb-4">Network & Proxy</h3>
+                        
+                        <div class="space-y-4">
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Use proxy server</span>
+                            </label>
+                            
+                            <div class="grid gap-4 lg:grid-cols-2 ml-7">
+                                <div>
+                                    <label class="block text-sm font-medium text-text-muted dark:text-gray-300 mb-1">Proxy URL</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="http://proxy.example.com:8080" 
+                                        disabled
+                                        class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none disabled:opacity-50"
+                                    >
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-text-muted dark:text-gray-300 mb-1">Authentication</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="username:password" 
+                                        disabled
+                                        class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none disabled:opacity-50"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="bg-white dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600 transition-colors">
+                        <h3 class="text-lg font-semibold text-text-dark dark:text-white mb-4">Notifications</h3>
+                        
+                        <div class="space-y-4">
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Notify when downloads complete</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Notify when downloads fail</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Play sound on completion</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Send email notifications</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="bg-white dark:bg-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600 transition-colors">
+                        <h3 class="text-lg font-semibold text-text-dark dark:text-white mb-4">Advanced</h3>
+                        
+                        <div class="grid gap-6 lg:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">Log Level</label>
+                                <select class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none">
+                                    <option>Error</option>
+                                    <option>Warning</option>
+                                    <option selected>Info</option>
+                                    <option>Debug</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-text-dark dark:text-white mb-2">API Port</label>
+                                <input 
+                                    type="number" 
+                                    value="3000" 
+                                    class="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none"
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 space-y-3">
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Enable debug logging</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" checked class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Check for updates automatically</span>
+                            </label>
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" class="w-4 h-4 text-accent-blue bg-gray-100 border-gray-300 rounded focus:ring-accent-blue dark:focus:ring-accent-blue dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="text-sm text-text-dark dark:text-white">Send anonymous usage statistics</span>
+                            </label>
+                        </div>
+                        
+                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <div class="flex gap-3">
+                                <button class="px-4 py-2 bg-accent-orange text-white rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm">
+                                    Export Settings
+                                </button>
+                                <button class="px-4 py-2 bg-gray-100 dark:bg-gray-600 text-text-dark dark:text-white rounded-lg hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors font-medium text-sm">
+                                    Import Settings
+                                </button>
+                                <button class="px-4 py-2 bg-badge-red text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-sm">
+                                    Reset All Settings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar - Sticky -->
+            <aside class="hidden lg:block lg:sticky lg:top-2 w-[320px] xl:w-[350px] h-[calc(100vh-1rem)] bg-card-bg dark:bg-gray-800 rounded-xl p-4 xl:p-5 transition-colors lg:flex-shrink-0 overflow-y-auto space-y-6"
+                   style="scrollbar-width: none; -ms-overflow-style: none;"
+            >
+                <style>
+                    aside::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
+                <!-- System Info -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">System Info</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-text-muted dark:text-gray-300">Version</span>
+                            <span class="text-text-dark dark:text-white font-medium">v1.0.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-muted dark:text-gray-300">yt-dlp</span>
+                            <span class="text-text-dark dark:text-white font-medium">2024.01.04</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-muted dark:text-gray-300">ffmpeg</span>
+                            <span class="text-text-dark dark:text-white font-medium">6.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-text-muted dark:text-gray-300">Node.js</span>
+                            <span class="text-text-dark dark:text-white font-medium">20.10.0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            🔄 Update yt-dlp
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📋 View Logs
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            🧹 Clear Cache
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📊 Test Performance
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Storage Usage -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Storage</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-text-muted dark:text-gray-300">Downloads</span>
+                                <span class="text-text-dark dark:text-white font-medium">1.2 TB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                <div class="bg-accent-blue h-2 rounded-full" style="width: 82%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-text-muted dark:text-gray-300">Cache</span>
+                                <span class="text-text-dark dark:text-white font-medium">234 MB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                <div class="bg-accent-orange h-2 rounded-full" style="width: 15%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-text-muted dark:text-gray-300">Logs</span>
+                                <span class="text-text-dark dark:text-white font-medium">45 MB</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                <div class="bg-accent-green h-2 rounded-full" style="width: 3%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Help & Support -->
+                <div>
+                    <h3 class="font-semibold text-text-dark dark:text-white mb-3 text-lg">Help & Support</h3>
+                    <div class="space-y-2">
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            📖 Documentation
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            🐛 Report Bug
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            💡 Feature Request
+                        </button>
+                        <button class="w-full text-left px-3 py-2 text-sm text-text-muted dark:text-gray-300 hover:text-text-dark dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors">
+                            ❤️ Support Project
+                        </button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- JavaScript for mobile navigation and dark mode -->
+    <script>
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const navRail = document.getElementById('nav-rail');
+        const closeNav = document.getElementById('close-nav');
+        const overlay = document.getElementById('mobile-overlay');
+
+        function openNav() {
+            navRail.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeNavigation() {
+            navRail.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        mobileToggle.addEventListener('click', openNav);
+        closeNav.addEventListener('click', closeNavigation);
+        overlay.addEventListener('click', closeNavigation);
+
+        // Close nav when clicking nav links on mobile
+        const navLinks = navRail.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) {
+                    closeNavigation();
+                }
+            });
+        });
+
+        // Dark mode toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const themeText = document.getElementById('theme-text');
+
+        function updateThemeUI() {
+            if (document.documentElement.classList.contains('dark')) {
+                themeIcon.textContent = '☀️';
+                themeText.textContent = 'Light Mode';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeText.textContent = 'Dark Mode';
+            }
+        }
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            updateThemeUI();
+        }
+
+        themeToggle.addEventListener('click', toggleTheme);
+        
+        // Initialize theme UI
+        updateThemeUI();
+    </script>
+</html>

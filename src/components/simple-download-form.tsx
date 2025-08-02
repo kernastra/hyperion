@@ -1,0 +1,330 @@
+"use client";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Download, Plus, Loader2 } from "lucide-react";t";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Download, Plus, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { useDownload } from "@/hooks/useDownload";
+
+interface VideoInfo {
+  title: string;
+  description: string;
+  duration: number;
+  uploader: string;
+  upload_date: string;
+  view_count: number;
+  like_count: number;
+  thumbnail: string;
+  formats: Array<{
+    format_id: string;
+    ext: string;
+    quality: number | null;
+    filesize: number | null;
+    height: number | null;
+    width: number | null;
+    fps: number | null;
+    vcodec: string | null;
+    acodec: string | null;
+    format_note: string | null;
+  }>;
+  webpage_url: string;
+}
+
+interface SimpleDownloadFormProps {
+  onVideoAnalyzed?: (videoInfo: VideoInfo) => void;
+}
+
+export default function SimpleDownloadForm({ onVideoAnalyzed }: SimpleDownloadFormProps) {
+  const [url, setUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<string>("best");
+  const { downloads, startDownload } = useDownload();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!url.trim()) return;
+    
+    setIsLoading(true);
+    setError("");
+    setVideoInfo(null);
+    
+    try {
+      const response = await fetch('/api/video-info', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ url: url.trim() }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to analyze video');
+      }
+
+      const data = await response.json();
+      setVideoInfo(data);
+      
+      if (onVideoAnalyzed) {
+        onVideoAnalyzed(data);
+      }
+      
+    } catch (error) {
+      console.error("Error analyzing URL:", error);
+      setError(error instanceof Error ? error.message : 'Failed to analyze video');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!videoInfo) return;
+
+    try {
+      const formatOption = selectedFormat === "best" ? "best" : selectedFormat;
+      await startDownload(url, { format: formatOption }, videoInfo.title);
+    } catch (error) {
+      console.error("Download error:", error);
+      setError("Failed to start download");
+    }
+  };
+
+  const handleAddToQueue = async () => {
+    if (!videoInfo) return;
+    
+    // For now, just start the download (queue functionality can be enhanced later)
+    handleDownload();
+  };
+
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatFileSize = (bytes: number | null) => {
+    if (!bytes) return 'Unknown';
+    const mb = bytes / (1024 * 1024);
+    const gb = mb / 1024;
+    
+    if (gb >= 1) {
+      return `${gb.toFixed(1)} GB`;
+    }
+    return `${mb.toFixed(1)} MB`;
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return `${(num / 1000000).toFixed(1)}M`;
+    }
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm lg:text-base font-medium text-text-dark dark:text-white mb-2">
+          Video URL
+        </label>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+          <Input
+            type="url"
+            placeholder="https://www.youtube.com/watch?v=..."
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            className="flex-1 px-4 py-3 border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:ring-2 focus:ring-accent-blue focus:border-transparent outline-none text-sm lg:text-base transition-colors"
+            disabled={isLoading}
+          />
+          <Button
+            type="submit"
+            disabled={isLoading || !url.trim()}
+            className="px-6 py-3 bg-accent-blue text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm lg:text-base whitespace-nowrap"
+          >
+            {isLoading ? "Analyzing..." : "Analyze"}
+          </Button>
+        </form>
+      </div>
+
+      {error && (
+        <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800">
+          <AlertDescription className="text-red-700 dark:text-red-400">
+            {error}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {videoInfo && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-600 space-y-4">
+          <div className="flex gap-4">
+            {videoInfo.thumbnail && (
+              <img 
+                src={videoInfo.thumbnail} 
+                alt="Video thumbnail"
+                className="w-32 h-24 object-cover rounded-lg flex-shrink-0"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-text-dark dark:text-white text-lg mb-2 line-clamp-2">
+                {videoInfo.title}
+              </h3>
+              <div className="space-y-1 text-sm text-text-muted dark:text-gray-300">
+                <p><span className="font-medium">Channel:</span> {videoInfo.uploader}</p>
+                <p><span className="font-medium">Duration:</span> {formatDuration(videoInfo.duration)}</p>
+                <div className="flex gap-4">
+                  <span><span className="font-medium">Views:</span> {formatNumber(videoInfo.view_count)}</span>
+                  {videoInfo.like_count > 0 && (
+                    <span><span className="font-medium">Likes:</span> {formatNumber(videoInfo.like_count)}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {videoInfo.formats && videoInfo.formats.length > 0 && (
+            <div>
+              <h4 className="font-medium text-text-dark dark:text-white mb-2">Available Formats</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-text-dark dark:text-white mb-1">
+                    Select Format
+                  </label>
+                  <Select value={selectedFormat} onValueChange={setSelectedFormat}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose format" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="best">Best Quality (Recommended)</SelectItem>
+                      <SelectItem value="worst">Fastest Download</SelectItem>
+                      <SelectItem value="bestvideo+bestaudio">Best Video + Audio</SelectItem>
+                      <SelectItem value="bestaudio">Audio Only</SelectItem>
+                      {videoInfo.formats.slice(0, 5).map((format) => (
+                        <SelectItem key={format.format_id} value={format.format_id}>
+                          {format.height ? `${format.height}p` : 'Audio'} {format.ext?.toUpperCase()} 
+                          {format.filesize && ` (${formatFileSize(format.filesize)})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-24 overflow-y-auto">
+                  {videoInfo.formats.slice(0, 6).map((format, index) => (
+                    <div 
+                      key={format.format_id || index}
+                      className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs"
+                    >
+                      <span className="font-medium">
+                        {format.height ? `${format.height}p` : 'Audio'} {format.ext?.toUpperCase()}
+                      </span>
+                      <span className="text-text-muted dark:text-gray-400">
+                        {formatFileSize(format.filesize)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {videoInfo.formats.length > 6 && (
+                  <p className="text-xs text-text-muted dark:text-gray-400">
+                    +{videoInfo.formats.length - 6} more formats available
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <Button 
+              onClick={handleDownload}
+              className="flex-1 bg-accent-green hover:bg-green-600 text-white"
+              disabled={isLoading}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download Now
+            </Button>
+            <Button 
+              onClick={handleAddToQueue}
+              variant="outline" 
+              className="flex-1"
+              disabled={isLoading}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add to Queue
+            </Button>
+          </div>
+
+          {/* Show active downloads for this video */}
+          {downloads.filter(d => d.url === url).map((download) => (
+            <div key={download.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {download.status === 'downloading' && <Loader2 className="w-4 h-4 animate-spin text-accent-blue" />}
+                  {download.status === 'completed' && <CheckCircle className="w-4 h-4 text-accent-green" />}
+                  {download.status === 'failed' && <AlertCircle className="w-4 h-4 text-badge-red" />}
+                  <span className="text-sm font-medium text-text-dark dark:text-white">
+                    {download.status === 'pending' && 'Preparing...'}
+                    {download.status === 'downloading' && 'Downloading...'}
+                    {download.status === 'completed' && 'Completed'}
+                    {download.status === 'failed' && 'Failed'}
+                  </span>
+                </div>
+                <Badge variant={
+                  download.status === 'completed' ? 'default' : 
+                  download.status === 'failed' ? 'destructive' : 
+                  'secondary'
+                }>
+                  {download.progress}%
+                </Badge>
+              </div>
+              
+              {download.status === 'downloading' && (
+                <div className="space-y-1">
+                  <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                    <div 
+                      className="bg-accent-blue h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${download.progress}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-text-muted dark:text-gray-400">
+                    <span>{download.speed || 'Calculating...'}</span>
+                    <span>ETA: {download.eta || 'Unknown'}</span>
+                  </div>
+                </div>
+              )}
+              
+              {download.status === 'completed' && download.filename && (
+                <p className="text-xs text-text-muted dark:text-gray-400 mt-1">
+                  Saved as: {download.filename}
+                </p>
+              )}
+              
+              {download.status === 'failed' && download.error && (
+                <p className="text-xs text-badge-red mt-1">
+                  Error: {download.error}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
