@@ -1,184 +1,203 @@
 # Hyperion
 
-A modern web interface for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with Next.js 15 and TypeScript.
+A full-featured web dashboard for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with Next.js 15 and TypeScript. Download videos and audio from YouTube and 1000+ other platforms through a clean, responsive UI.
+
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8?logo=tailwindcss)
 
 ## Features
 
-- 🎬 **Video Downloads**: Download videos from YouTube and other supported platforms
-- 🎵 **Audio Extraction**: Extract audio-only files in various formats
-- 📊 **Real-time Progress**: Live download progress with speed and ETA information  
-- 📝 **Download Queue**: Manage multiple downloads simultaneously
-- 📁 **Download History**: Track completed and failed downloads
-- 🎨 **Modern UI**: Clean, responsive interface built with shadcn/ui
-- ⚡ **Fast**: Built with Next.js 15 and Turbopack for optimal performance
+- **Dashboard** — Live stats, download activity chart, format distribution, and recent history
+- **Downloads** — URL input with video info preview, format/quality selection, audio-only mode
+- **Queue** — Real-time progress tracking for active downloads with speed, ETA, and cancel controls
+- **History** — Searchable and filterable log of all completed and failed downloads
+- **Settings** — Configurable yt-dlp path, download directory, format defaults, proxy, and cookies
+- **Dark Mode** — Full dark/light theme with system preference detection and manual toggle
+- **Responsive** — Desktop sidebar layout, mobile bottom tab bar
 
 ## Prerequisites
 
-Before running this application, make sure you have:
+- **Node.js** v18 or later
+- **yt-dlp** installed and accessible on your system
+- **ffmpeg** (optional — required for merging separate video+audio streams)
 
-1. **Node.js** (v18 or later)
-2. **yt-dlp** installed and accessible in your PATH
-   ```bash
-   # Install yt-dlp
-   pip install yt-dlp
-   # Or using package manager
-   sudo apt install yt-dlp  # Ubuntu/Debian
-   brew install yt-dlp      # macOS
-   ```
+```bash
+# Install yt-dlp
+pip install "yt-dlp[default]"
+
+# Install ffmpeg (Ubuntu/Debian)
+sudo apt install ffmpeg
+
+# Install ffmpeg (macOS)
+brew install ffmpeg
+
+# Verify installations
+yt-dlp --version
+ffmpeg -version
+```
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd ytdlp
-   ```
+```bash
+git clone https://github.com/kernastra/hyperion.git
+cd hyperion
+npm install
+npm run dev
+```
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+For a production build:
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
-
-## Usage
-
-### Download a Video
-
-1. Go to the **Download** tab
-2. Enter one or more video URLs
-3. Select your preferred format and quality
-4. Choose audio-only if you only want the audio
-5. Optionally set a custom download path
-6. Click **Start Download**
-
-### Monitor Downloads
-
-- Switch to the **Queue** tab to see active downloads
-- View real-time progress, download speed, and estimated time
-- Remove downloads from the queue if needed
-
-### View History
-
-- The **History** tab shows all completed and failed downloads
-- Click **Open File** to access downloaded files
-- Click **Original URL** to revisit the source
-- Use **Clear History** to remove all history records
-
-## API Endpoints
-
-The application provides REST API endpoints:
-
-- `POST /api/download` - Start a new download
-- `POST /api/video-info` - Get video information
-- `GET /api/history` - Get download history
-- `POST /api/history` - Add to download history
-- `DELETE /api/history` - Clear or remove history items
+```bash
+npm run build
+npm start
+```
 
 ## Configuration
 
-### Download Directory
+All settings are persisted to `hyperion.config.json` in the project root. You can edit this file directly or use the **Settings** page in the UI.
 
-By default, files are downloaded to the `./downloads` directory. You can:
+| Setting | Default | Description |
+|---|---|---|
+| `ytDlpPath` | `yt-dlp` | Full path to the yt-dlp binary (e.g. `/home/user/.local/bin/yt-dlp`) |
+| `downloadPath` | `./downloads` | Directory where downloaded files are saved |
+| `defaultQuality` | `best` | Default quality selection (`best`, `1080p`, `720p`, etc.) |
+| `defaultFormat` | `mp4` | Preferred container format (`mp4`, `webm`, `mkv`) |
+| `cookiesPath` | _(empty)_ | Path to a Netscape-format cookies file for authentication |
+| `proxy` | _(empty)_ | HTTP/HTTPS proxy URL |
 
-1. Change the default in the download form
-2. Set a custom path for each download
-3. Modify the API route to use a different default location
+> `hyperion.config.json` is listed in `.gitignore` and will not be committed. It is created automatically on first run.
 
-### Supported Formats
+### Finding your yt-dlp path
 
-The application supports all formats that yt-dlp supports, including:
-
-- **Video**: MP4, WebM, MKV, FLV, AVI
-- **Audio**: MP3, AAC, OPUS, M4A, FLAC, WAV
-- **Quality**: Best, Worst, or specific resolutions (144p to 4K+)
-
-## Technical Stack
-
-- **Frontend**: Next.js 15, React 18, TypeScript
-- **UI**: shadcn/ui, Tailwind CSS, Lucide Icons
-- **Backend**: Next.js API Routes, Node.js streams
-- **Download Engine**: yt-dlp CLI integration
-
-## Development
-
-### Project Structure
-
-```
-src/
-├── app/
-│   ├── api/
-│   │   ├── download/route.ts       # Download streaming API
-│   │   ├── video-info/route.ts     # Video information API
-│   │   └── history/route.ts        # History management API
-│   ├── globals.css                 # Global styles
-│   ├── layout.tsx                  # Root layout
-│   └── page.tsx                    # Main page
-├── components/
-│   ├── ui/                         # shadcn/ui components
-│   ├── download-form.tsx           # Download form component
-│   ├── download-queue.tsx          # Download queue component
-│   ├── download-history.tsx        # Download history component
-│   └── video-downloader.tsx        # Main container component
-└── lib/
-    └── download-history.ts         # History management utility
+```bash
+which yt-dlp
+# Example output: /home/user/.local/bin/yt-dlp
 ```
 
-### Adding New Features
+Set this path in **Settings > General > yt-dlp path** or directly in `hyperion.config.json`.
 
-1. **New Download Options**: Modify the `DownloadForm` component and API routes
-2. **Additional File Formats**: Update the format options in the form component
-3. **Enhanced Progress Tracking**: Extend the progress parsing in the download API
-4. **File Management**: Add file operations to the history component
+## Cookie Authentication
+
+To download age-restricted or login-required content (e.g. YouTube sign-in required, Instagram), export your browser cookies to a Netscape-format `cookies.txt` file and set the path in **Settings > Network > Cookies file**.
+
+### Exporting cookies from your browser
+
+Use a browser extension such as [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) (Chrome) or [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) (Firefox). Export cookies for the site you want to download from and save the file to your machine.
+
+The app creates a temporary copy of the cookies file before each download so yt-dlp cannot overwrite it.
+
+## Cloud and Datacenter IPs
+
+YouTube and some other platforms block downloads originating from datacenter IP ranges (GitHub Codespaces, AWS, Azure, GCP, etc.). If you see errors like `Sign in to confirm you're not a bot`, configure a residential proxy in **Settings > Network > Proxy** or run the app on a local machine.
+
+## API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/download` | Start a download — returns an SSE stream with progress events |
+| `POST` | `/api/video-info` | Fetch video metadata (title, duration, formats) via yt-dlp |
+| `GET` | `/api/history` | List all download history records |
+| `POST` | `/api/history` | Add a history record |
+| `DELETE` | `/api/history` | Clear history — all records or a specific one by `id` |
+| `GET` | `/api/settings` | Read the current configuration |
+| `POST` | `/api/settings` | Update configuration |
+| `GET` | `/api/system-status` | Check yt-dlp and ffmpeg availability |
+
+### SSE download stream events
+
+The `POST /api/download` endpoint streams [Server-Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events) with the following event types:
+
+| Event | Payload | Description |
+|---|---|---|
+| `progress` | `{ percent, speed, eta }` | Download progress update |
+| `complete` | `{ filename, path }` | Download finished successfully |
+| `error` | `{ message }` | Download failed |
+
+## Project Structure
+
+```
+hyperion/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── download/route.ts         # SSE streaming download endpoint
+│   │   │   ├── video-info/route.ts       # Video metadata via yt-dlp --dump-json
+│   │   │   ├── history/route.ts          # Download history CRUD (GET/POST/DELETE)
+│   │   │   ├── settings/route.ts         # Config read/write (hyperion.config.json)
+│   │   │   └── system-status/route.ts    # yt-dlp and ffmpeg health check
+│   │   ├── dashboard/page.tsx            # Dashboard with stats and charts
+│   │   ├── queue/page.tsx                # Active download queue with progress
+│   │   ├── history/page.tsx              # Download history with search/filter
+│   │   ├── settings/page.tsx             # App settings UI
+│   │   ├── layout.tsx                    # Root layout with providers
+│   │   └── page.tsx                      # Downloads page (URL input + preview)
+│   ├── components/
+│   │   ├── ui/                           # shadcn/ui base components (button, card, etc.)
+│   │   ├── main-layout.tsx               # 3-column shell (sidebar + main + right panel)
+│   │   ├── sidebar-navigation.tsx        # Desktop sidebar + mobile bottom tab bar
+│   │   ├── client-providers.tsx          # ThemeProvider + DownloadProvider wrapper
+│   │   ├── add-download-modal.tsx        # Quick-add modal accessible from any page
+│   │   ├── simple-download-form-basic.tsx # URL input form with video info preview
+│   │   └── downloads-sidebar-enhanced.tsx # Active downloads panel (right sidebar)
+│   ├── contexts/
+│   │   └── DownloadContext.tsx           # Shared download state across all pages
+│   ├── hooks/
+│   │   └── useDownloadManager.ts         # Core download logic + localStorage persistence
+│   └── lib/
+│       ├── config.ts                     # Server-side config (reads hyperion.config.json)
+│       ├── download-history.ts           # In-memory history singleton (server-side)
+│       └── utils.ts                      # Shared utility functions (cn, etc.)
+├── downloads/                            # Default download output directory
+├── hyperion.config.json                  # Runtime config (auto-created, gitignored)
+├── tailwind.config.js                    # Tailwind CSS configuration with custom palette
+├── postcss.config.js                     # PostCSS configuration
+└── next.config.ts                        # Next.js configuration
+```
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 15 (App Router, Turbopack) |
+| Language | TypeScript 5 |
+| Styling | Tailwind CSS 3, custom color palette |
+| Components | shadcn/ui, Radix UI primitives, Lucide icons |
+| Theming | next-themes (dark/light mode, system preference) |
+| Download engine | yt-dlp spawned via Node.js `child_process` |
+| Progress streaming | Server-Sent Events (SSE) |
+| State management | React Context + localStorage |
 
 ## Troubleshooting
 
-### yt-dlp Not Found
+**yt-dlp not found**
+Set the full binary path in **Settings > General** (e.g. `/home/user/.local/bin/yt-dlp`). Verify with `which yt-dlp`.
 
-If you get "yt-dlp not found" errors:
+**"Sign in to confirm you're not a bot" / bot detection errors**
+Your IP may be blocked. Export cookies from a logged-in browser session and configure the path in **Settings > Network > Cookies file**. If running on a cloud server, use a residential proxy.
 
-1. Make sure yt-dlp is installed: `which yt-dlp`
-2. Add yt-dlp to your PATH
-3. Restart the development server
+**"Requested format is not available"**
+Try selecting a different quality preset, or set quality to **Best** to let yt-dlp choose automatically.
 
-### Download Fails
+**ffmpeg missing — merge errors**
+Some formats (MP4 with separate video and audio streams, certain 1080p+ resolutions) require ffmpeg to merge the streams. Install ffmpeg and restart the dev server.
 
-Common issues:
+**Downloads not saving**
+Confirm the configured download path exists and is writable by the process running the app:
+```bash
+ls -la ./downloads
+# or your configured path
+```
 
-1. **Video not available**: Check if the URL is accessible
-2. **Format not supported**: Try different quality/format settings
-3. **Network issues**: Check your internet connection
-4. **Permissions**: Ensure write access to the download directory
-
-### Performance
-
-For better performance:
-
-1. Limit concurrent downloads
-2. Use appropriate quality settings
-3. Consider using a dedicated download directory
-4. Monitor system resources during large downloads
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+**Port already in use**
+If you see `EADDRINUSE`, another process is using port 3000. Kill it:
+```bash
+lsof -ti:3000 | xargs kill -9
+npm run dev
+```
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - The powerful download engine
-- [Next.js](https://nextjs.org/) - The React framework
-- [shadcn/ui](https://ui.shadcn.com/) - Beautiful UI components
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+MIT

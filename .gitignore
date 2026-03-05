@@ -55,16 +55,26 @@ downloads/*
 *.webm
 *.mkv
 *.avi
+*.mov
+*.wmv
+*.flv
+*.m4v
 *.m4a
 *.opus
 *.flac
 *.wav
+*.aac
+*.ogg
+*.part
+*.ytdl
+*.temp
 
-# Application data
-history.json
-download-history.json
+# Application data (sensitive / machine-specific)
 hyperion.config.json
 cookies.txt
+cookies-*.txt
+history.json
+download-history.json
 
 # IDE files
 .vscode/settings.json
