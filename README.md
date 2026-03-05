@@ -1,3 +1,5 @@
+![Hyperion](img.png)
+
 # Hyperion
 
 A full-featured web dashboard for [yt-dlp](https://github.com/yt-dlp/yt-dlp), built with Next.js 15 and TypeScript. Download videos and audio from YouTube and 1000+ other platforms through a clean, responsive UI.
