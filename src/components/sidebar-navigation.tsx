@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-toggle";
+import { useDownloadContext } from "@/contexts/DownloadContext";
 
 interface NavItem {
   label: string;
@@ -20,111 +20,100 @@ const navItems: NavItem[] = [
 ];
 
 export function SidebarNavigation() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
+  const { activeDownloads } = useDownloadContext();
 
   return (
     <>
-      {/* Mobile Navigation Toggle */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <button 
-          onClick={toggleMobileMenu}
-          className="bg-nav-bg dark:bg-gray-800 text-white p-2 rounded-lg shadow-lg"
-        >
-          ☰
-        </button>
-      </div>
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-nav-bg border-t border-white/10 flex items-stretch">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`relative flex-1 flex flex-col items-center justify-center py-2 gap-0.5 text-[10px] transition-colors ${
+                isActive ? 'text-accent-blue' : 'text-gray-400 hover:text-white'
+              }`}
+            >
+              <span className="text-base leading-none">{item.icon}</span>
+              <span className="font-medium">{item.label}</span>
+              {item.label === 'Queue' && activeDownloads.length > 0 && (
+                <span className="absolute top-1 right-[calc(50%-18px)] w-4 h-4 bg-badge-red text-[9px] font-bold flex items-center justify-center rounded-full text-white">
+                  {activeDownloads.length > 9 ? '9+' : activeDownloads.length}
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
 
-      {/* Mobile Overlay */}
-      {isMobileMenuOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={closeMobileMenu}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside 
-        className={`
-          fixed lg:sticky lg:top-2 left-0 w-80 lg:w-[280px] xl:w-[300px] 
-          h-full lg:h-[calc(100vh-1rem)] bg-nav-bg dark:bg-gray-800 text-white lg:rounded-xl p-4 
-          z-50 transform transition-transform duration-300 ease-in-out 
-          lg:flex-shrink-0 overflow-y-auto
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
+      {/* Desktop Sidebar */}
+      <aside
+        className="hidden lg:flex lg:flex-col lg:sticky lg:top-2 lg:w-[260px] xl:w-[280px] lg:h-[calc(100vh-1rem)] bg-nav-bg text-white lg:rounded-xl p-4 lg:flex-shrink-0 overflow-y-auto"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        <style jsx>{`
-          aside::-webkit-scrollbar {
-            display: none;
-          }
-        `}</style>
-
-        {/* Close button for mobile */}
-        <button 
-          onClick={closeMobileMenu}
-          className="lg:hidden absolute top-3 right-3 text-white text-xl"
-        >
-          ✕
-        </button>
-        
-        {/* Logo */}
-        <div className="mb-28 pt-6 lg:pt-0">
-          <div className="text-center">
-            <div className="h-24 w-24 mx-auto mb-2 bg-accent-blue rounded-lg flex items-center justify-center">
-              <span className="text-2xl font-bold text-white">H</span>
+        {/* Logo / Branding */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                H
+              </div>
+              {activeDownloads.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-badge-red text-[11px] font-bold flex items-center justify-center rounded-full text-white">
+                  {activeDownloads.length > 9 ? '9+' : activeDownloads.length}
+                </span>
+              )}
             </div>
-            <div className="text-xl font-bold text-white mb-1">Hyperion</div>
-            <div className="text-base text-gray-400">Video Downloader</div>
+            <div className="flex-1">
+              <div className="font-bold text-base text-white">Hyperion</div>
+              <div className="text-xs text-gray-400">Video Downloader</div>
+            </div>
           </div>
         </div>
 
         {/* Navigation Menu */}
-        <nav className="space-y-2 text-base">
+        <nav className="space-y-1 flex-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={closeMobileMenu}
                 className={`
-                  flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative
-                  ${isActive 
-                    ? 'text-white font-semibold before:absolute before:-left-4 before:inset-y-0 before:w-1 before:bg-accent-blue before:rounded-r' 
+                  flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors relative
+                  ${isActive
+                    ? 'text-white font-semibold before:absolute before:-left-4 before:inset-y-0 before:w-1 before:bg-accent-blue before:rounded-r'
                     : 'text-gray-300 hover:text-white hover:bg-white/10'
                   }
                 `}
               >
-                <div className={`w-5 h-5 rounded flex items-center justify-center text-xs ${
-                  isActive ? 'bg-accent-blue' : 'bg-gray-400'
+                <div className={`w-5 h-5 rounded flex items-center justify-center text-xs flex-shrink-0 ${
+                  isActive ? 'bg-accent-blue' : 'bg-gray-600'
                 }`}>
                   {item.icon}
                 </div>
-                {item.label}
+                <span className="text-sm">{item.label}</span>
+                {item.label === 'Queue' && activeDownloads.length > 0 && (
+                  <span className="ml-auto text-xs bg-accent-blue text-white px-1.5 py-0.5 rounded-full font-medium">
+                    {activeDownloads.length}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
         {/* Dark Mode Toggle */}
-        <div className="mt-auto pt-4 border-t border-gray-600 dark:border-gray-700">
+        <div className="pt-4 border-t border-gray-600 dark:border-gray-700">
           <div className="flex items-center gap-3 px-3 py-2">
             <ThemeToggle />
           </div>
-        </div>
-        
-        {/* Version Number at bottom */}
-        <div className="absolute bottom-4 left-4 right-4 text-center">
-          <div className="text-xs text-gray-500">Hyperion v1.0.0</div>
+          <div className="text-center mt-2">
+            <div className="text-xs text-gray-500">Hyperion v1.0.0</div>
+          </div>
         </div>
       </aside>
     </>

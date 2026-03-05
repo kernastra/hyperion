@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+import { getConfig } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   try {
@@ -70,14 +72,19 @@ export async function POST(request: NextRequest) {
           let formatString = '';
           
           if (quality === 'best') {
-            formatString = 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best';
+            formatString = 'bestvideo+bestaudio/best';
           } else if (quality === 'worst') {
-            formatString = 'worstvideo[ext=mp4]+worstaudio[ext=m4a]/worstvideo+worstaudio/worst';
+            formatString = 'worstvideo+worstaudio/worst';
           } else {
-            formatString = `bestvideo[height<=${quality}][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=${quality}]+bestaudio/best[height<=${quality}]`;
+            formatString = `bestvideo[height<=${quality}]+bestaudio/best[height<=${quality}]/best`;
           }
           
-          args.push('-f', formatString);
+          // If format is itself a yt-dlp selector, use it directly instead of the quality-derived string
+          if (format && ['bestvideo+bestaudio', 'bestvideo', 'bestaudio', 'best'].includes(format)) {
+            args.push('-f', format + '/best');
+          } else {
+            args.push('-f', formatString);
+          }
 
           // Set container format if specified and not a format selector
           if (format && !['best', 'worst', 'bestvideo+bestaudio', 'bestvideo', 'bestaudio'].includes(format)) {
@@ -97,18 +104,27 @@ export async function POST(request: NextRequest) {
           }
         }
 
+        const config = getConfig();
+
         // Add progress and other options
         args.push(
-          '--newline', // Output progress on new lines
+          '--newline',
           '--no-warnings',
           '--ignore-errors',
-          '--prefer-ffmpeg', // Prefer ffmpeg for merging
-          '--ffmpeg-location', '/usr/bin/ffmpeg' // Ensure ffmpeg is found
+          '--prefer-ffmpeg',
+          '--ffmpeg-location', config.ffmpegPath,
+          '--js-runtimes', `node:${process.execPath}`,
         );
 
+        let tempCookies: string | null = null;
+        if (config.cookiesPath) {
+          tempCookies = path.join(os.tmpdir(), `hyperion-cookies-${Date.now()}.txt`);
+          fs.copyFileSync(config.cookiesPath, tempCookies);
+          args.push('--cookies', tempCookies);
+        }
         console.log('Executing yt-dlp with args:', args);
 
-        const ytdlp = spawn('/home/sean/.local/bin/yt-dlp', args);
+        const ytdlp = spawn(config.ytDlpPath, args);
         let filename = '';
         let completed = false;
 
@@ -201,12 +217,14 @@ export async function POST(request: NextRequest) {
             }
           }
           
+          if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
           controller.close();
         });
 
         ytdlp.on('error', (error) => {
+          if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
           console.error('yt-dlp process error:', error);
-          
+
           const errorData = {
             type: 'error',
             message: error.message,

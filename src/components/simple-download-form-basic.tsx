@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, Plus, Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { useDownloadManager } from "@/hooks/useDownloadManager";
+import { useDownloadContext } from "@/contexts/DownloadContext";
 
 interface VideoInfo {
   title: string;
@@ -43,7 +43,7 @@ export default function SimpleDownloadForm({ onVideoAnalyzed }: SimpleDownloadFo
   const [successMessage, setSuccessMessage] = useState("");
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [selectedFormat, setSelectedFormat] = useState<string>("bestvideo+bestaudio");
-  const { startDownload } = useDownloadManager();
+  const { startDownload } = useDownloadContext();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

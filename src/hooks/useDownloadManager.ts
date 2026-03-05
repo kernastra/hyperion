@@ -156,7 +156,18 @@ export function useDownloadManager() {
                       eta: data.eta,
                       filename: data.filename || d.filename,
                     };
-                  case 'complete':
+                  case 'complete': {
+                    // Save to history
+                    fetch('/api/history', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        url: d.url,
+                        title: d.title || 'Unknown',
+                        filename: data.filename || '',
+                        status: 'completed',
+                      }),
+                    }).catch(() => {});
                     return {
                       ...d,
                       status: 'completed' as const,
@@ -166,13 +177,29 @@ export function useDownloadManager() {
                       speed: undefined,
                       eta: undefined,
                     };
-                  case 'error':
+                  }
+                  case 'error': {
+                    // Save failed to history (only for non-cancellation errors)
+                    if (data.message && !data.message.includes('cancelled')) {
+                      fetch('/api/history', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          url: d.url,
+                          title: d.title || 'Unknown',
+                          filename: '',
+                          status: 'failed',
+                          error: data.message,
+                        }),
+                      }).catch(() => {});
+                    }
                     return {
                       ...d,
                       status: 'failed' as const,
                       error: data.message,
                       endTime: new Date(),
                     };
+                  }
                   default:
                     return d;
                 }

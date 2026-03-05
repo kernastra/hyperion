@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { getConfig } from '@/lib/config';
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
@@ -10,14 +14,24 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
 
     return new Promise((resolve) => {
+      const config = getConfig();
       const args = [
         url,
         '--dump-json',
         '--no-warnings',
-        '--ignore-errors'
+        '--ignore-errors',
+        '--js-runtimes', `node:${process.execPath}`,
       ];
 
-      const ytdlp = spawn('/home/sean/.local/bin/yt-dlp', args);
+      let tempCookies: string | null = null;
+      if (config.cookiesPath) {
+        // Copy to a temp file so yt-dlp can't overwrite the original
+        tempCookies = path.join(os.tmpdir(), `hyperion-cookies-${Date.now()}.txt`);
+        fs.copyFileSync(config.cookiesPath, tempCookies);
+        args.push('--cookies', tempCookies);
+      }
+
+      const ytdlp = spawn(config.ytDlpPath, args);
       let jsonOutput = '';
       let errorOutput = '';
 
@@ -30,7 +44,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
 
       ytdlp.on('close', (code) => {
-        if (code === 0 && jsonOutput.trim()) {
+        if (jsonOutput.trim()) {
           try {
             const videoInfo = JSON.parse(jsonOutput.trim());
             
@@ -89,11 +103,16 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
 
       ytdlp.on('error', (error) => {
+        if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
         console.error('yt-dlp process error:', error);
         resolve(NextResponse.json(
           { error: 'Failed to execute yt-dlp' },
           { status: 500 }
         ));
+      });
+
+      ytdlp.on('close', () => {
+        if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
       });
     });
   } catch (error) {

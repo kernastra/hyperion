@@ -63,6 +63,8 @@ downloads/*
 # Application data
 history.json
 download-history.json
+hyperion.config.json
+cookies.txt
 
 # IDE files
 .vscode/settings.json
