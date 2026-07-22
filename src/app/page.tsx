@@ -1,6 +1,6 @@
-import SimpleDownloadForm from '@/components/simple-download-form-basic';
+import SimpleDownloadForm from '@/components/simple-download-form';
 import { MainLayout } from '@/components/main-layout';
-import DownloadsSidebar from '@/components/downloads-sidebar-enhanced';
+import DownloadsSidebar from '@/components/downloads-sidebar';
 
 export default function Home() {
   return (

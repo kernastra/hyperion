@@ -31,34 +31,30 @@ export function useDownloadManager() {
   // Ensure we only run client-side logic after mounting
   useEffect(() => {
     setMounted(true);
-    console.log('DownloadManager mounted');
-    
+
     // Load downloads from localStorage
     try {
       const saved = localStorage.getItem('hyperion-downloads');
       if (saved) {
         const parsedDownloads = JSON.parse(saved);
         // Convert date strings back to Date objects
-        const downloadsWithDates = parsedDownloads.map((d: any) => ({
+        const downloadsWithDates = parsedDownloads.map((d: DownloadProgress) => ({
           ...d,
           startTime: new Date(d.startTime),
           endTime: d.endTime ? new Date(d.endTime) : undefined,
         }));
         setDownloads(downloadsWithDates);
-        console.log('Loaded downloads from localStorage:', downloadsWithDates);
       }
     } catch (error) {
       console.error('Failed to load downloads from localStorage:', error);
     }
   }, []);
 
-  // Debug downloads state and save to localStorage
+  // Save to localStorage when downloads state changes
   useEffect(() => {
-    console.log('Downloads state updated:', downloads);
     if (mounted && downloads.length > 0) {
       try {
         localStorage.setItem('hyperion-downloads', JSON.stringify(downloads));
-        console.log('Saved downloads to localStorage');
       } catch (error) {
         console.error('Failed to save downloads to localStorage:', error);
       }
@@ -105,7 +101,8 @@ export function useDownloadManager() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to start download');
+        const { error } = await response.json().catch(() => ({} as { error?: string }));
+        throw new Error(error || 'Failed to start download');
       }
 
       if (!response.body) {
@@ -301,7 +298,6 @@ export function useDownloadManager() {
     // Clear localStorage as well
     try {
       localStorage.removeItem('hyperion-downloads');
-      console.log('Cleared downloads from localStorage');
     } catch (error) {
       console.error('Failed to clear downloads from localStorage:', error);
     }
