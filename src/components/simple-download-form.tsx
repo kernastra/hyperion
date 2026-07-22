@@ -256,7 +256,7 @@ export default function SimpleDownloadForm({ onVideoAnalyzed }: SimpleDownloadFo
                         <p>🎵 Audio-only file (MP3, AAC, or similar format)</p>
                       )}
                       {selectedFormat === "bestvideo" && (
-                        <p>� Video-only file without audio (for editing purposes)</p>
+                        <p>🎬 Video-only file without audio (for editing purposes)</p>
                       )}
                     </div>
                   </div>
