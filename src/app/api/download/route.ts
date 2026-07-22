@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
 import { getConfig } from '@/lib/config';
+import { assertSafeHttpUrl } from '@/lib/url-security';
+import { resolveWithinRoot, createSecureCookiesCopy } from '@/lib/fs-security';
+
+const ALLOWED_QUALITIES = new Set(['best', 'worst', '360', '480', '720', '1080', '1440', '2160']);
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,51 +16,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
+    try {
+      await assertSafeHttpUrl(url);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Invalid URL' },
+        { status: 400 }
+      );
+    }
+
+    if (!audioOnly && quality !== undefined && quality !== null && !ALLOWED_QUALITIES.has(String(quality))) {
+      return NextResponse.json({ error: 'Invalid quality value' }, { status: 400 });
+    }
+
+    const config = getConfig();
+    const downloadsRoot = path.resolve(config.downloadPath);
+
+    // Confine outputPath to the configured downloads root to prevent path traversal.
+    let downloadPath: string;
+    if (outputPath) {
+      const resolved = resolveWithinRoot(downloadsRoot, outputPath);
+      if (!resolved) {
+        return NextResponse.json(
+          { error: 'outputPath must be within the configured downloads directory' },
+          { status: 400 }
+        );
+      }
+      downloadPath = resolved;
+    } else {
+      downloadPath = downloadsRoot;
+    }
+
+    try {
+      if (!fs.existsSync(downloadPath)) {
+        fs.mkdirSync(downloadPath, { recursive: true });
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: `Cannot create output directory: ${downloadPath}. ${error}` },
+        { status: 500 }
+      );
+    }
+
     // Create a readable stream for Server-Sent Events
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       start(controller) {
-        const args = [url];
-
-        // Set output template with proper path handling
-        let downloadPath;
-        if (outputPath) {
-          // If user provided a path, resolve it to absolute path
-          downloadPath = path.resolve(outputPath);
-          
-          // Ensure the directory exists
-          try {
-            if (!fs.existsSync(downloadPath)) {
-              fs.mkdirSync(downloadPath, { recursive: true });
-            }
-          } catch (error) {
-            const errorData = {
-              type: 'error',
-              message: `Cannot create output directory: ${downloadPath}. ${error}`,
-            };
-            controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'));
-            controller.close();
-            return;
-          }
-        } else {
-          // Use default downloads directory
-          downloadPath = path.resolve('./downloads');
-          
-          // Ensure default directory exists
-          try {
-            if (!fs.existsSync(downloadPath)) {
-              fs.mkdirSync(downloadPath, { recursive: true });
-            }
-          } catch (error) {
-            const errorData = {
-              type: 'error',
-              message: `Cannot create downloads directory: ${error}`,
-            };
-            controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'));
-            controller.close();
-            return;
-          }
-        }
+        const args: string[] = [];
 
         args.push('-o', path.join(downloadPath, '%(title)s.%(ext)s'));
 
@@ -70,7 +75,7 @@ export async function POST(request: NextRequest) {
         } else {
           // Video download with both video and audio
           let formatString = '';
-          
+
           if (quality === 'best') {
             formatString = 'bestvideo+bestaudio/best';
           } else if (quality === 'worst') {
@@ -78,7 +83,7 @@ export async function POST(request: NextRequest) {
           } else {
             formatString = `bestvideo[height<=${quality}]+bestaudio/best[height<=${quality}]/best`;
           }
-          
+
           // If format is itself a yt-dlp selector, use it directly instead of the quality-derived string
           if (format && ['bestvideo+bestaudio', 'bestvideo', 'bestaudio', 'best'].includes(format)) {
             args.push('-f', format + '/best');
@@ -104,8 +109,6 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        const config = getConfig();
-
         // Add progress and other options
         args.push(
           '--newline',
@@ -116,13 +119,25 @@ export async function POST(request: NextRequest) {
           '--js-runtimes', `node:${process.execPath}`,
         );
 
-        let tempCookies: string | null = null;
+        let tempCookies: { path: string; cleanup: () => void } | null = null;
         if (config.cookiesPath) {
-          tempCookies = path.join(os.tmpdir(), `hyperion-cookies-${Date.now()}.txt`);
-          fs.copyFileSync(config.cookiesPath, tempCookies);
-          args.push('--cookies', tempCookies);
+          const resolvedCookies = resolveWithinRoot(downloadsRoot, config.cookiesPath);
+          if (!resolvedCookies) {
+            const errorData = {
+              type: 'error',
+              message: 'Configured cookies path is outside the allowed downloads directory',
+            };
+            controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'));
+            controller.close();
+            return;
+          }
+          tempCookies = createSecureCookiesCopy(resolvedCookies);
+          args.push('--cookies', tempCookies.path);
         }
-        console.log('Executing yt-dlp with args:', args);
+
+        // '--' sentinel prevents the user-supplied url from being parsed as
+        // an option (e.g. a url starting with `--exec=`).
+        args.push('--', url);
 
         const ytdlp = spawn(config.ytDlpPath, args);
         let filename = '';
@@ -130,11 +145,10 @@ export async function POST(request: NextRequest) {
 
         ytdlp.stdout.on('data', (data) => {
           const output = data.toString();
-          console.log('yt-dlp stdout:', output);
 
           // Parse progress information
           const lines = output.split('\n').filter((line: string) => line.trim());
-          
+
           for (const line of lines) {
             // Extract filename
             if (line.includes('Destination:')) {
@@ -188,8 +202,7 @@ export async function POST(request: NextRequest) {
 
         ytdlp.stderr.on('data', (data) => {
           const error = data.toString();
-          console.error('yt-dlp stderr:', error);
-          
+
           const errorData = {
             type: 'error',
             message: error.trim(),
@@ -198,8 +211,6 @@ export async function POST(request: NextRequest) {
         });
 
         ytdlp.on('close', (code) => {
-          console.log('yt-dlp process closed with code:', code);
-          
           // Only send completion/error if we haven't already
           if (!completed) {
             if (code === 0) {
@@ -216,14 +227,13 @@ export async function POST(request: NextRequest) {
               controller.enqueue(encoder.encode(JSON.stringify(errorData) + '\n'));
             }
           }
-          
-          if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
+
+          tempCookies?.cleanup();
           controller.close();
         });
 
         ytdlp.on('error', (error) => {
-          if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
-          console.error('yt-dlp process error:', error);
+          tempCookies?.cleanup();
 
           const errorData = {
             type: 'error',

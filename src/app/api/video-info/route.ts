@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { spawn } from 'child_process';
-import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { getConfig } from '@/lib/config';
+import { assertSafeHttpUrl } from '@/lib/url-security';
+import { resolveWithinRoot, createSecureCookiesCopy } from '@/lib/fs-security';
 
 export async function POST(request: NextRequest): Promise<Response> {
   try {
@@ -13,23 +13,43 @@ export async function POST(request: NextRequest): Promise<Response> {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
     }
 
+    try {
+      await assertSafeHttpUrl(url);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Invalid URL' },
+        { status: 400 }
+      );
+    }
+
     return new Promise((resolve) => {
       const config = getConfig();
-      const args = [
-        url,
+      const args: string[] = [
         '--dump-json',
         '--no-warnings',
         '--ignore-errors',
         '--js-runtimes', `node:${process.execPath}`,
       ];
 
-      let tempCookies: string | null = null;
+      let tempCookies: { path: string; cleanup: () => void } | null = null;
       if (config.cookiesPath) {
-        // Copy to a temp file so yt-dlp can't overwrite the original
-        tempCookies = path.join(os.tmpdir(), `hyperion-cookies-${Date.now()}.txt`);
-        fs.copyFileSync(config.cookiesPath, tempCookies);
-        args.push('--cookies', tempCookies);
+        const cookiesRoot = path.resolve(config.downloadPath);
+        const resolvedCookies = resolveWithinRoot(cookiesRoot, config.cookiesPath);
+        if (!resolvedCookies) {
+          resolve(NextResponse.json(
+            { error: 'Configured cookies path is outside the allowed downloads directory' },
+            { status: 400 }
+          ));
+          return;
+        }
+        // Copy to a private temp file so yt-dlp can't overwrite the original
+        tempCookies = createSecureCookiesCopy(resolvedCookies);
+        args.push('--cookies', tempCookies.path);
       }
+
+      // '--' sentinel prevents the user-supplied url from being parsed as
+      // an option (e.g. a url starting with `--exec=`).
+      args.push('--', url);
 
       const ytdlp = spawn(config.ytDlpPath, args);
       let jsonOutput = '';
@@ -47,7 +67,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         if (jsonOutput.trim()) {
           try {
             const videoInfo = JSON.parse(jsonOutput.trim());
-            
+
             // Extract relevant information
             const extractedInfo = {
               title: videoInfo.title || 'Unknown',
@@ -103,7 +123,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
 
       ytdlp.on('error', (error) => {
-        if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
+        tempCookies?.cleanup();
         console.error('yt-dlp process error:', error);
         resolve(NextResponse.json(
           { error: 'Failed to execute yt-dlp' },
@@ -112,7 +132,7 @@ export async function POST(request: NextRequest): Promise<Response> {
       });
 
       ytdlp.on('close', () => {
-        if (tempCookies) try { fs.unlinkSync(tempCookies); } catch {}
+        tempCookies?.cleanup();
       });
     });
   } catch (error) {

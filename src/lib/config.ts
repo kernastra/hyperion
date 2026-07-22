@@ -26,8 +26,8 @@ export interface HyperionConfig {
 }
 
 const defaults: HyperionConfig = {
-  ytDlpPath: process.env.YTDLP_PATH || '/home/codespace/.python/current/bin/yt-dlp',
-  ffmpegPath: process.env.FFMPEG_PATH || '/usr/bin/ffmpeg',
+  ytDlpPath: process.env.YTDLP_PATH || 'yt-dlp',
+  ffmpegPath: process.env.FFMPEG_PATH || 'ffmpeg',
   downloadPath: './downloads',
   maxConcurrentDownloads: 5,
   defaultVideoQuality: '1080',
